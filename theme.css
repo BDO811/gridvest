@@ -1,0 +1,165 @@
+/* ============================================================
+   GRIDVEST DESIGN TOKENS
+   Edit this file to rebrand the entire site. Nothing else
+   needs to change: every page reads these variables.
+   ============================================================ */
+:root {
+  /* Brand */
+  --brand-name: "GridVest";
+
+  /* Surfaces */
+  --paper:        #F0EAE0;   /* page background (cream) */
+  --paper-alt:    #FFFFFF;   /* alternating table rows / cards */
+  --paper-inset:  #F5F5F5;   /* inset panels */
+
+  /* Ink */
+  --ink:          #000000;   /* headlines, primary text */
+  --ink-body:     #1A1A1A;   /* body copy */
+  --ink-label:    #2E2E2E;   /* secondary labels, chrome */
+
+  /* Accent — rules and stripes only, never text */
+  --accent:       #000000;
+
+  /* Functional data colors (tables only) */
+  --buy-bg:       #DCE8D4;   /* muted sage for buy rows */
+  --sell-bg:      #EBD6D2;   /* muted clay for sell rows */
+  --line:         #CECECE;   /* hairlines */
+
+  /* Type */
+  --font-display: Georgia, 'Times New Roman', serif;
+  --font-body:    Georgia, 'Times New Roman', serif;
+  --font-mono:    'Courier New', Courier, monospace;
+
+  /* Scale */
+  --size-hero:    44px;
+  --size-h2:      22px;      /* half of hero, per canon */
+  --size-body:    16px;
+  --size-label:   12px;
+  --track-mono:   -0.02em;   /* compress Courier New */
+  --radius:       0;         /* no rounded corners */
+  --maxw:         1080px;
+}
+
+/* ---------- Reset-ish ---------- */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--paper);
+  color: var(--ink-body);
+  font-family: var(--font-body);
+  font-size: var(--size-body);
+  line-height: 1.55;
+}
+a { color: var(--ink); }
+img { max-width: 100%; }
+
+/* ---------- Chrome ---------- */
+.wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; }
+
+.topbar {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 20px 0 14px;
+  border-bottom: 2px solid var(--accent);
+}
+.wordmark {
+  font-family: var(--font-display);
+  font-weight: bold; font-size: 24px; color: var(--ink);
+  text-decoration: none; letter-spacing: -0.01em;
+}
+.wordmark::after { content: "\25A0"; font-size: 0.55em; margin-left: 0.35em; position: relative; top: -0.1em; }
+nav.mainnav { display: flex; gap: 26px; }
+nav.mainnav a {
+  font-family: var(--font-mono); letter-spacing: var(--track-mono);
+  font-size: var(--size-label); text-transform: uppercase;
+  color: var(--ink-label); text-decoration: none;
+}
+nav.mainnav a:hover, nav.mainnav a.active { color: var(--ink); font-weight: bold; }
+
+.eyebrow {
+  font-family: var(--font-mono); letter-spacing: 0.08em;
+  font-size: var(--size-label); text-transform: uppercase;
+  color: var(--ink-label); margin-bottom: 14px;
+}
+
+h1.hero {
+  font-family: var(--font-display); font-size: var(--size-hero);
+  line-height: 1.15; color: var(--ink); font-weight: bold;
+}
+h2.section {
+  font-family: var(--font-mono); letter-spacing: var(--track-mono);
+  font-size: var(--size-h2); text-transform: uppercase; color: var(--ink);
+  padding-bottom: 8px; border-bottom: 1px solid var(--accent);
+  margin-bottom: 22px;
+}
+h3 { font-family: var(--font-display); font-size: 18px; color: var(--ink); margin-bottom: 6px; }
+
+.lead { font-size: 19px; color: var(--ink-body); }
+
+.btn {
+  display: inline-block; background: var(--ink); color: var(--paper);
+  font-family: var(--font-mono); letter-spacing: var(--track-mono);
+  text-transform: uppercase; font-size: 13px; font-weight: bold;
+  padding: 13px 30px; text-decoration: none; border: none; cursor: pointer;
+}
+.btn:hover { background: #2E2E2E; }
+.btn--ghost { background: none; color: var(--ink); border: 1px solid var(--ink); }
+
+/* ---------- Layout helpers ---------- */
+section.block { padding: 56px 0; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+.grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+@media (max-width: 800px) { .grid2, .grid3 { grid-template-columns: 1fr; } }
+
+.card {
+  background: var(--paper-alt); border: 1px solid var(--line);
+  padding: 22px;
+}
+.stat {
+  font-family: var(--font-display); font-size: 40px; font-weight: bold; color: var(--ink);
+}
+.stat-label {
+  font-family: var(--font-mono); letter-spacing: var(--track-mono);
+  font-size: var(--size-label); text-transform: uppercase; color: var(--ink-label);
+}
+
+/* ---------- Data tables ---------- */
+table.data {
+  width: 100%; border-collapse: collapse; background: var(--paper-alt);
+  font-size: 13px;
+}
+table.data th {
+  font-family: var(--font-mono); letter-spacing: var(--track-mono);
+  font-size: 11px; text-transform: uppercase; color: var(--ink-label);
+  text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--accent);
+}
+table.data td { padding: 7px 10px; border-bottom: 1px solid var(--line); color: var(--ink-body); }
+table.data tr:nth-child(even) td { background: var(--paper); }
+table.data td.num { text-align: right; font-variant-numeric: tabular-nums; }
+table.data tr.buy td { background: var(--buy-bg); }
+table.data tr.sell td { background: var(--sell-bg); }
+
+/* ---------- Forms ---------- */
+label.field {
+  display: block; font-family: var(--font-mono); letter-spacing: var(--track-mono);
+  font-size: var(--size-label); text-transform: uppercase; color: var(--ink-label);
+  margin: 14px 0 4px;
+}
+input[type="number"], input[type="text"], select {
+  width: 100%; padding: 9px 10px; font-family: var(--font-body); font-size: 15px;
+  border: 1px solid var(--ink-label); background: var(--paper-alt); color: var(--ink);
+}
+
+/* ---------- Footer ---------- */
+footer.site {
+  margin-top: 60px; padding: 26px 0 40px;
+  border-top: 1px solid var(--accent);
+}
+footer.site .legal {
+  font-family: var(--font-mono); letter-spacing: var(--track-mono);
+  font-size: 11px; color: var(--ink-label); text-transform: uppercase; line-height: 1.7;
+}
+.disclosure {
+  background: var(--paper-alt); border: 1px solid var(--ink);
+  padding: 18px 20px; font-size: 13px; color: var(--ink-body); margin-top: 24px;
+}
+.disclosure strong { font-family: var(--font-mono); text-transform: uppercase; font-size: 12px; }

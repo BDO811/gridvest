@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GridVest · App Mockup</title>
+<link rel="stylesheet" href="theme.css">
+<style>
+  .apptabs { display:flex; gap:8px; margin:22px 0; flex-wrap:wrap; }
+  .apptabs a {
+    font-family: var(--font-mono); letter-spacing: var(--track-mono);
+    font-size: 12px; text-transform: uppercase; text-decoration: none;
+    padding: 10px 18px; border: 1px solid var(--ink); color: var(--ink);
+  }
+  .apptabs a.on { background: var(--ink); color: var(--paper); }
+  .fundcard h3 { font-family: var(--font-mono); text-transform: uppercase; font-size: 14px;
+    border-bottom: 1px solid var(--accent); padding-bottom: 6px; margin-bottom: 10px; }
+  .kv { display:flex; justify-content:space-between; font-size: 13px; padding: 3px 0; }
+  .kv span:last-child { font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="topbar">
+    <a class="wordmark" href="index.html">GridVest</a>
+    <nav class="mainnav">
+      <a href="index.html">How It Works</a>
+      <a href="calculator.html">Retirement Calculator</a>
+      <a href="app.html" class="active">The App</a>
+      <a href="index.html#disclosure">Risk</a>
+    </nav>
+  </header>
+
+  <section class="block" style="padding-bottom:20px">
+    <div class="eyebrow">Member App · Design Mockup · Sample Data</div>
+    <h1 class="hero" style="font-size:34px">Your portfolio, one honest page.</h1>
+    <div class="apptabs">
+      <a class="on" href="#">Daily Processing</a><a href="#">Summary</a><a href="#">Ledger</a>
+      <a href="#">Charts</a><a href="#">Projections</a><a href="#">Settings</a>
+    </div>
+  </section>
+
+  <section style="padding-bottom:40px">
+    <div class="grid3">
+      <div class="card fundcard">
+        <h3>Fund A · 60% target</h3>
+        <div class="kv"><span>Currently deployed</span><span>41%</span></div>
+        <div class="kv"><span>Open blocks</span><span>9</span></div>
+        <div class="kv"><span>Realized gains YTD</span><span>$38,410</span></div>
+        <div class="kv"><span>Open gain (loss)</span><span>($6,220)</span></div>
+        <div class="kv"><span>Avg days per gain</span><span>2.1</span></div>
+      </div>
+      <div class="card fundcard">
+        <h3>Fund B · 30% target</h3>
+        <div class="kv"><span>Currently deployed</span><span>12%</span></div>
+        <div class="kv"><span>Open blocks</span><span>3</span></div>
+        <div class="kv"><span>Realized gains YTD</span><span>$9,730</span></div>
+        <div class="kv"><span>Open gain (loss)</span><span>($1,010)</span></div>
+        <div class="kv"><span>Avg days per gain</span><span>3.8</span></div>
+      </div>
+      <div class="card fundcard">
+        <h3>Portfolio</h3>
+        <div class="kv"><span>Net investment</span><span>$1,000,000</span></div>
+        <div class="kv"><span>Realized value</span><span>$1,048,140</span></div>
+        <div class="kv"><span>Market value</span><span>$1,040,910</span></div>
+        <div class="kv"><span>Cash reserve</span><span>72%</span></div>
+        <div class="kv"><span>Return (realized)</span><span>4.81%</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding-bottom:40px">
+    <h2 class="section">Today's tickets</h2>
+    <table class="data">
+      <tr><th>Action</th><th>Symbol</th><th>Shares</th><th>Limit price</th><th>Account</th><th>Note</th></tr>
+      <tr class="sell"><td>SELL</td><td class="num">FUND A</td><td class="num">610</td><td class="num">49.10</td><td>Retirement</td><td>Block #214 target +3.0%</td></tr>
+      <tr class="buy"><td>BUY</td><td class="num">FUND A</td><td class="num">625</td><td class="num">47.65</td><td>Retirement</td><td>Rung 2 below close</td></tr>
+      <tr class="buy"><td>BUY</td><td class="num">FUND B</td><td class="num">18</td><td class="num">262.40</td><td>Retirement</td><td>Rung 1 below close</td></tr>
+      <tr><td>CANCEL</td><td class="num">FUND A</td><td class="num">640</td><td class="num">45.20</td><td>Retirement</td><td>Stale rung, repriced</td></tr>
+    </table>
+    <p style="margin-top:14px;font-size:13px;color:var(--ink-label)">
+      Sample data. In the real app these tickets are generated each morning from your broker
+      export, then you place them at your broker in a few minutes.
+    </p>
+  </section>
+
+  <footer class="site">
+    <div class="legal">GridVest · Self-Directed Investing Software · © 2026 · Mockup with sample data</div>
+  </footer>
+</div>
+
+</body>
+</html>

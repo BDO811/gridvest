@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GridVest · Retirement Calculator</title>
+<link rel="stylesheet" href="theme.css">
+</head>
+<body>
+
+<div class="wrap">
+  <header class="topbar">
+    <a class="wordmark" href="index.html">GridVest</a>
+    <nav class="mainnav">
+      <a href="index.html">How It Works</a>
+      <a href="calculator.html" class="active">Retirement Calculator</a>
+      <a href="app.html">The App</a>
+      <a href="index.html#disclosure">Risk</a>
+    </nav>
+  </header>
+
+  <section class="block">
+    <div class="eyebrow">Planning Tool · 2026</div>
+    <h1 class="hero" style="font-size:34px">Will you have enough to retire?</h1>
+
+    <div class="grid2" style="margin-top:30px">
+      <div class="card">
+        <label class="field">Current age</label>
+        <input type="number" id="age" value="52">
+        <label class="field">Current annual household income ($)</label>
+        <input type="number" id="income" value="200000">
+        <label class="field">Current retirement savings ($)</label>
+        <input type="number" id="savings" value="500000">
+        <label class="field">Annual contribution ($)</label>
+        <input type="number" id="contrib" value="25000">
+        <label class="field">Average annual net return (%)</label>
+        <input type="number" id="ret" value="7" step="0.5">
+        <label class="field">Retirement age</label>
+        <input type="number" id="retAge" value="67">
+        <label class="field">Income desired in retirement (% of current)</label>
+        <input type="number" id="pct" value="90">
+        <label class="field">Annual retirement income from other sources ($)</label>
+        <input type="number" id="other" value="30000">
+        <label class="field">Life expectancy (age)</label>
+        <input type="number" id="life" value="90">
+        <p style="margin-top:18px"><button class="btn" onclick="calc()">Calculate</button></p>
+      </div>
+
+      <div>
+        <div class="card" id="resultCard">
+          <div class="eyebrow" style="margin-bottom:6px">At retirement you will…</div>
+          <div class="stat" id="haveStat">–</div>
+          <div class="stat-label">Projected savings at retirement</div>
+          <hr style="border:none;border-top:1px solid var(--line);margin:14px 0">
+          <div class="stat" id="needStat">–</div>
+          <div class="stat-label">Savings needed to fund your retirement</div>
+          <hr style="border:none;border-top:1px solid var(--line);margin:14px 0">
+          <div style="font-family:var(--font-mono);font-size:13px;text-transform:uppercase" id="verdict"></div>
+        </div>
+        <div class="card" style="margin-top:20px">
+          <div class="eyebrow">Retirement balance by age</div>
+          <canvas id="chart" width="480" height="300" style="width:100%"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="disclosure" style="margin-top:34px">
+      <strong>Disclosure:</strong> This calculator is a simplified planning illustration, not
+      advice. It assumes constant returns and ignores taxes, inflation adjustments beyond your
+      inputs, and sequence-of-returns risk. Real outcomes will differ.
+    </div>
+  </section>
+
+  <footer class="site">
+    <div class="legal">GridVest · Self-Directed Investing Software · © 2026</div>
+  </footer>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const fmt = n => '$' + Math.round(n).toLocaleString();
+
+function calc() {
+  const age = +$('age').value, income = +$('income').value, savings = +$('savings').value;
+  const contrib = +$('contrib').value, r = +$('ret').value / 100, retAge = +$('retAge').value;
+  const pct = +$('pct').value / 100, other = +$('other').value, life = +$('life').value;
+
+  const needIncome = income * pct;                 // desired retirement income
+  const fromInvest = Math.max(0, needIncome - other);
+
+  // Accumulate to retirement
+  let bal = savings;
+  const series = [{ age, bal }];
+  for (let a = age + 1; a <= retAge; a++) { bal = bal * (1 + r) + contrib; series.push({ age: a, bal }); }
+  const have = bal;
+
+  // Needed: PV of withdrawals from retirement to life expectancy at return r
+  const years = Math.max(1, life - retAge);
+  const need = r > 0 ? fromInvest * (1 - Math.pow(1 + r, -years)) / r : fromInvest * years;
+
+  // Drawdown after retirement
+  for (let a = retAge + 1; a <= life; a++) { bal = bal * (1 + r) - fromInvest; series.push({ age: a, bal }); }
+
+  $('haveStat').textContent = fmt(have);
+  $('needStat').textContent = fmt(need);
+  const ok = have >= need;
+  $('verdict').textContent = ok
+    ? 'On track: projected savings cover your plan.'
+    : 'Shortfall: raise contributions, returns, or retirement age.';
+  $('verdict').style.color = '#000000';
+
+  drawChart(series, retAge);
+}
+
+function drawChart(series, retAge) {
+  const c = $('chart'), x = c.getContext('2d');
+  const W = c.width, H = c.height, P = 44;
+  x.clearRect(0, 0, W, H);
+  const vals = series.map(s => s.bal);
+  const maxV = Math.max(...vals, 1), minV = Math.min(...vals, 0);
+  const X = i => P + (W - P - 12) * i / (series.length - 1);
+  const Y = v => H - P + (P + 14 - H) * (v - minV) / (maxV - minV);
+
+  // axes
+  x.strokeStyle = '#2E2E2E'; x.lineWidth = 1;
+  x.beginPath(); x.moveTo(P, 10); x.lineTo(P, H - P); x.lineTo(W - 10, H - P); x.stroke();
+  // zero line
+  if (minV < 0) { x.strokeStyle = '#CECECE'; x.beginPath(); x.moveTo(P, Y(0)); x.lineTo(W - 10, Y(0)); x.stroke(); }
+
+  // line
+  x.strokeStyle = '#000000'; x.lineWidth = 2; x.beginPath();
+  series.forEach((s, i) => i ? x.lineTo(X(i), Y(s.bal)) : x.moveTo(X(i), Y(s.bal)));
+  x.stroke();
+
+  // retirement marker
+  const ri = series.findIndex(s => s.age === retAge);
+  if (ri > 0) {
+    x.strokeStyle = '#2E2E2E'; x.setLineDash([4, 4]);
+    x.beginPath(); x.moveTo(X(ri), 10); x.lineTo(X(ri), H - P); x.stroke(); x.setLineDash([]);
+  }
+
+  // labels
+  x.fillStyle = '#2E2E2E'; x.font = '10px Courier New';
+  x.fillText(fmt(maxV), 2, Y(maxV) + 8);
+  x.fillText(fmt(minV), 2, Y(minV));
+  x.fillText('age ' + series[0].age, P, H - P + 14);
+  x.fillText('age ' + series[series.length - 1].age, W - 70, H - P + 14);
+  if (ri > 0) x.fillText('retire', X(ri) - 14, 10 + 8);
+}
+
+calc();
+</script>
+
+</body>
+</html>
