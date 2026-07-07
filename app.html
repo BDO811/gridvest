@@ -3,20 +3,65 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>GridVest · App Mockup</title>
+<title>GridVest · Member App</title>
 <link rel="stylesheet" href="theme.css">
 <style>
-  .apptabs { display:flex; gap:8px; margin:22px 0; flex-wrap:wrap; }
-  .apptabs a {
+  /* ---- app chrome ---- */
+  .acctbar { display:flex; justify-content:flex-end; padding:10px 0 0; }
+  .acctbar select { width:auto; min-width:280px; font-size:13px; }
+  .apptabs { display:flex; gap:6px; margin:18px 0 26px; flex-wrap:wrap; }
+  .apptabs button {
     font-family: var(--font-mono); letter-spacing: var(--track-mono);
-    font-size: 12px; text-transform: uppercase; text-decoration: none;
-    padding: 10px 18px; border: 1px solid var(--ink); color: var(--ink);
+    font-size:12px; text-transform:uppercase; padding:12px 22px;
+    border:1px solid var(--ink); background:none; color:var(--ink); cursor:pointer;
   }
-  .apptabs a.on { background: var(--ink); color: var(--paper); }
-  .fundcard h3 { font-family: var(--font-mono); text-transform: uppercase; font-size: 14px;
-    border-bottom: 1px solid var(--accent); padding-bottom: 6px; margin-bottom: 10px; }
-  .kv { display:flex; justify-content:space-between; font-size: 13px; padding: 3px 0; }
-  .kv span:last-child { font-variant-numeric: tabular-nums; }
+  .apptabs button.on { background:var(--ink); color:var(--paper); font-weight:bold; }
+  .panel { display:none; } .panel.on { display:block; }
+
+  /* ---- historical results panel ---- */
+  .hr-tabs { display:flex; gap:0; margin-bottom:-1px; }
+  .hr-tabs button { font-family:var(--font-mono); font-size:11px; text-transform:uppercase;
+    letter-spacing:var(--track-mono); padding:8px 14px; border:1px solid var(--ink);
+    background:none; cursor:pointer; }
+  .hr-tabs button.on { background:var(--ink); color:var(--paper); }
+  table.results { width:100%; border-collapse:collapse; border:1px solid var(--ink); background:var(--paper-alt); font-size:12.5px; }
+  table.results td { padding:3px 8px; border:none; }
+  table.results td:last-child { text-align:right; font-variant-numeric:tabular-nums; }
+  table.results tr.head td { background:var(--ink); color:var(--paper);
+    font-family:var(--font-mono); font-size:11px; text-transform:uppercase; letter-spacing:var(--track-mono); }
+  table.results tr.band td { background:var(--paper); font-weight:bold; border-top:1px solid var(--line); }
+  table.results tr.total td { border-top:1px solid var(--ink); font-weight:bold; }
+
+  /* ---- wizard ---- */
+  .steps { display:flex; flex-direction:column; gap:6px; max-width:240px; }
+  .steps div { font-family:var(--font-mono); font-size:12px; text-transform:uppercase;
+    letter-spacing:var(--track-mono); padding:10px 12px; border:1px solid var(--line);
+    background:var(--paper-alt); color:var(--ink-label); cursor:pointer; }
+  .steps div.on { border-color:var(--ink); background:var(--ink); color:var(--paper); font-weight:bold; }
+  .wizgrid { display:grid; grid-template-columns:260px 1fr; gap:34px; }
+  @media (max-width:800px){ .wizgrid { grid-template-columns:1fr; } }
+
+  .fundcard h3 { font-family:var(--font-mono); text-transform:uppercase; font-size:14px;
+    border-bottom:1px solid var(--accent); padding-bottom:6px; margin-bottom:10px; }
+  .kv { display:flex; justify-content:space-between; font-size:13px; padding:3px 0; }
+  .kv span:last-child { font-variant-numeric:tabular-nums; }
+
+  .chips { display:flex; gap:6px; margin-bottom:14px; }
+  .chips button { font-family:var(--font-mono); font-size:11px; text-transform:uppercase;
+    padding:7px 16px; border:1px solid var(--ink); background:none; cursor:pointer; }
+  .chips button.on { background:var(--ink); color:var(--paper); }
+
+  details.faq { background:var(--paper-alt); border:1px solid var(--line); padding:12px 16px; margin-bottom:8px; }
+  details.faq summary { font-family:var(--font-display); font-weight:bold; cursor:pointer; color:var(--ink); }
+  details.faq p { margin-top:8px; font-size:14px; }
+  .tiles { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:34px; }
+  @media (max-width:800px){ .tiles { grid-template-columns:repeat(2,1fr); } }
+  .tiles a { display:block; text-align:center; padding:22px 8px; border:1px solid var(--ink);
+    background:var(--paper-alt); text-decoration:none; font-family:var(--font-mono);
+    font-size:11.5px; text-transform:uppercase; letter-spacing:var(--track-mono); color:var(--ink); }
+  .tiles a:hover { background:var(--ink); color:var(--paper); }
+  .note { font-size:12.5px; color:var(--ink-label); margin-top:10px; }
+  h2.panelhead { font-family:var(--font-display); font-size:30px; color:var(--ink); margin-bottom:18px; }
 </style>
 </head>
 <body>
@@ -25,70 +70,399 @@
   <header class="topbar">
     <a class="wordmark" href="index.html">GridVest</a>
     <nav class="mainnav">
-      <a href="index.html">How It Works</a>
+      <a href="index.html">Site Home</a>
       <a href="calculator.html">Retirement Calculator</a>
-      <a href="app.html" class="active">The App</a>
-      <a href="index.html#disclosure">Risk</a>
+      <a href="app.html" class="active">Member App</a>
     </nav>
   </header>
 
-  <section class="block" style="padding-bottom:20px">
-    <div class="eyebrow">Member App · Design Mockup · Sample Data</div>
-    <h1 class="hero" style="font-size:34px">Your portfolio, one honest page.</h1>
-    <div class="apptabs">
-      <a class="on" href="#">Daily Processing</a><a href="#">Summary</a><a href="#">Ledger</a>
-      <a href="#">Charts</a><a href="#">Projections</a><a href="#">Settings</a>
-    </div>
-  </section>
+  <div class="acctbar">
+    <select id="acct" onchange="renderAll()">
+      <option>Cash Group Account (Broker Group)</option>
+      <option>Roth Group Account (Broker Group)</option>
+    </select>
+  </div>
 
-  <section style="padding-bottom:40px">
-    <div class="grid3">
-      <div class="card fundcard">
-        <h3>Fund A · 60% target</h3>
-        <div class="kv"><span>Currently deployed</span><span>41%</span></div>
-        <div class="kv"><span>Open blocks</span><span>9</span></div>
-        <div class="kv"><span>Realized gains YTD</span><span>$38,410</span></div>
-        <div class="kv"><span>Open gain (loss)</span><span>($6,220)</span></div>
-        <div class="kv"><span>Avg days per gain</span><span>2.1</span></div>
+  <div class="apptabs" id="tabs">
+    <button data-p="home"  class="on">Home</button>
+    <button data-p="daily">Daily Processing</button>
+    <button data-p="summary">Summary</button>
+    <button data-p="analysis">Analysis</button>
+    <button data-p="charts">Charts</button>
+    <button data-p="proj">Projections</button>
+    <button data-p="help">Help Center</button>
+  </div>
+
+  <!-- ================= HOME ================= -->
+  <div class="panel on" id="p-home">
+    <div class="grid2">
+      <div>
+        <div class="eyebrow">Member Home · Sample Data</div>
+        <h2 class="panelhead">Welcome back.</h2>
+        <p class="lead" id="countdown">…</p>
+        <p style="margin-top:10px" id="ytdline"></p>
+        <p style="margin-top:22px"><button class="btn" onclick="go('daily')">Start Daily Processing</button></p>
       </div>
-      <div class="card fundcard">
-        <h3>Fund B · 30% target</h3>
-        <div class="kv"><span>Currently deployed</span><span>12%</span></div>
-        <div class="kv"><span>Open blocks</span><span>3</span></div>
-        <div class="kv"><span>Realized gains YTD</span><span>$9,730</span></div>
-        <div class="kv"><span>Open gain (loss)</span><span>($1,010)</span></div>
-        <div class="kv"><span>Avg days per gain</span><span>3.8</span></div>
-      </div>
-      <div class="card fundcard">
-        <h3>Portfolio</h3>
-        <div class="kv"><span>Net investment</span><span>$1,000,000</span></div>
-        <div class="kv"><span>Realized value</span><span>$1,048,140</span></div>
-        <div class="kv"><span>Market value</span><span>$1,040,910</span></div>
-        <div class="kv"><span>Cash reserve</span><span>72%</span></div>
-        <div class="kv"><span>Return (realized)</span><span>4.81%</span></div>
+      <div>
+        <div class="hr-tabs">
+          <button class="on" onclick="hrTab(0,this)">Historical Results</button>
+          <button onclick="hrTab(1,this)">Annual Returns</button>
+        </div>
+        <div id="hr-0"></div>
+        <div id="hr-1" style="display:none">
+          <table class="results">
+            <tr class="head"><td>Year</td><td>Return (Realized)</td></tr>
+            <tr><td>2024</td><td>11.2%</td></tr>
+            <tr><td>2025</td><td>13.8%</td></tr>
+            <tr><td>2026 YTD</td><td>4.8%</td></tr>
+          </table>
+        </div>
+        <p class="note">Combined results of all your GridVest groups and accounts.</p>
       </div>
     </div>
-  </section>
+  </div>
 
-  <section style="padding-bottom:40px">
-    <h2 class="section">Today's tickets</h2>
-    <table class="data">
-      <tr><th>Action</th><th>Symbol</th><th>Shares</th><th>Limit price</th><th>Account</th><th>Note</th></tr>
-      <tr class="sell"><td>SELL</td><td class="num">FUND A</td><td class="num">610</td><td class="num">49.10</td><td>Retirement</td><td>Block #214 target +3.0%</td></tr>
-      <tr class="buy"><td>BUY</td><td class="num">FUND A</td><td class="num">625</td><td class="num">47.65</td><td>Retirement</td><td>Rung 2 below close</td></tr>
-      <tr class="buy"><td>BUY</td><td class="num">FUND B</td><td class="num">18</td><td class="num">262.40</td><td>Retirement</td><td>Rung 1 below close</td></tr>
-      <tr><td>CANCEL</td><td class="num">FUND A</td><td class="num">640</td><td class="num">45.20</td><td>Retirement</td><td>Stale rung, repriced</td></tr>
-    </table>
-    <p style="margin-top:14px;font-size:13px;color:var(--ink-label)">
-      Sample data. In the real app these tickets are generated each morning from your broker
-      export, then you place them at your broker in a few minutes.
-    </p>
-  </section>
+  <!-- ================= DAILY PROCESSING ================= -->
+  <div class="panel" id="p-daily">
+    <h2 class="panelhead">Daily Processing</h2>
+    <div class="wizgrid">
+      <div class="steps" id="steps">
+        <div class="on" onclick="wiz(0)">1 · Import broker file</div>
+        <div onclick="wiz(1)">2 · Orders to cancel</div>
+        <div onclick="wiz(2)">3 · Orders to place</div>
+      </div>
+      <div>
+        <div id="w-0">
+          <h3>Import your broker transactions</h3>
+          <p>Export the Activity/History CSV from your broker, then load it here. The engine
+          reconciles your positions, cash, and filled orders before writing today's tickets.</p>
+          <p style="margin:16px 0"><input type="file" id="csv" accept=".csv"
+             onchange="document.getElementById('csvmsg').textContent='Loaded: '+this.files[0].name+' — positions reconciled (sample).'"></p>
+          <p class="note" id="csvmsg">No file loaded. Sample state will be used.</p>
+          <p style="margin-top:18px"><button class="btn" onclick="wiz(1)">Continue</button></p>
+        </div>
+        <div id="w-1" style="display:none">
+          <h3>Orders to cancel</h3>
+          <table class="data" id="cancelTbl"></table>
+          <p class="note">Rungs no longer inside the active ladder window are cancelled and repriced.</p>
+          <p style="margin-top:18px"><button class="btn" onclick="wiz(2)">Continue</button></p>
+        </div>
+        <div id="w-2" style="display:none">
+          <h3>Orders to place</h3>
+          <p class="note" style="margin-bottom:10px">Generated live by the GridVest engine
+          (ladder step <span id="pStep"></span>, sell target <span id="pTarget"></span>,
+          block ≈ <span id="pBlock"></span> of portfolio) from the sample positions below.</p>
+          <table class="data" id="placeTbl"></table>
+          <p style="margin-top:18px"><button class="btn" onclick="go('summary')">Done — view Summary</button></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= SUMMARY ================= -->
+  <div class="panel" id="p-summary">
+    <h2 class="panelhead">Summary</h2>
+    <div class="grid3" id="fundCards"></div>
+    <div class="grid2" style="margin-top:26px">
+      <div id="totalPanel"></div>
+      <div>
+        <h2 class="section" style="font-size:16px">Historical summary</h2>
+        <table class="data" id="histTbl"></table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= ANALYSIS ================= -->
+  <div class="panel" id="p-analysis">
+    <h2 class="panelhead">Analysis</h2>
+    <div class="chips" id="chips">
+      <button data-s="FUND A" onclick="chip(this)">Fund A</button>
+      <button data-s="FUND B" onclick="chip(this)">Fund B</button>
+      <button data-s="ALL" class="on" onclick="chip(this)">All</button>
+    </div>
+    <table class="data" id="ledger"></table>
+    <p class="note">Green rows are buys, red rows are sells. Blocks owned counts open trading blocks after each transaction.</p>
+  </div>
+
+  <!-- ================= CHARTS ================= -->
+  <div class="panel" id="p-charts">
+    <h2 class="panelhead">Charts</h2>
+    <div class="grid2">
+      <div class="card">
+        <div class="eyebrow">Portfolio value over time</div>
+        <canvas id="pchart" width="560" height="340" style="width:100%"></canvas>
+        <p class="note">Solid: realized value. Dotted: market value including open blocks.</p>
+      </div>
+      <div id="chartsHr"></div>
+    </div>
+  </div>
+
+  <!-- ================= PROJECTIONS ================= -->
+  <div class="panel" id="p-proj">
+    <h2 class="panelhead">Projections</h2>
+    <div class="grid2">
+      <div class="card">
+        <label class="field">Current age</label><input type="number" id="prAge" value="52">
+        <label class="field">Investment amount ($)</label><input type="number" id="prAmt" value="1000000">
+        <label class="field">Annual contribution ($)</label><input type="number" id="prContrib" value="0">
+        <label class="field">Contribution ending age</label><input type="number" id="prContribEnd" value="64">
+        <label class="field">Withdrawal starting age</label><input type="number" id="prWAge" value="65">
+        <label class="field">Withdrawal type</label>
+        <select id="prWType">
+          <option value="growth">Growth only</option>
+          <option value="amount">Set amount</option>
+          <option value="percent">Set percent</option>
+        </select>
+        <label class="field">Set amount ($) / percent (%) if selected</label><input type="number" id="prWVal" value="100000">
+        <label class="field">Scenario 1 growth rate (%)</label><input type="number" id="prG1" value="10">
+        <label class="field">Scenario 2 growth rate (%)</label><input type="number" id="prG2" value="15">
+        <p style="margin-top:16px"><button class="btn" onclick="renderProj()">Update tables</button></p>
+        <p class="note">Past performance may not be indicative of future performance.</p>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data" id="projTbl"></table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= HELP CENTER ================= -->
+  <div class="panel" id="p-help">
+    <h2 class="panelhead">Help Center</h2>
+    <div class="tiles">
+      <a href="#" onclick="go('daily');return false">Daily Processing</a>
+      <a href="#">Broker Questions</a>
+      <a href="#">FAQs</a>
+      <a href="#">Video Resources</a>
+      <a href="#">Our Team</a>
+      <a href="#" onclick="go('proj');return false">Tools</a>
+      <a href="#">Referral Center</a>
+      <a href="index.html#disclosure">Risk Disclosure</a>
+    </div>
+    <h2 class="section" style="font-size:16px">Spotlight on key topics</h2>
+    <details class="faq"><summary>Is something wrong if I have no new buy orders today?</summary>
+      <p>No. New rungs only appear when price sits inside the ladder window and your deployment
+      is under its cap. Quiet days are normal and by design.</p></details>
+    <details class="faq"><summary>What do I do if my sell order expires?</summary>
+      <p>Tomorrow's Daily Processing will re-issue the sell at the same target above the block's
+      basis. Nothing is lost by an expiry.</p></details>
+    <details class="faq"><summary>What happens if I miss a day?</summary>
+      <p>The engine reconciles from your next broker import. Open blocks keep their targets;
+      you simply may have missed placing a rung.</p></details>
+    <details class="faq"><summary>How do I move money in or out?</summary>
+      <p>Deposit or withdraw at your broker as usual, then import the CSV. Contributions and
+      withdrawals are tracked as separate line items so returns stay accurate.</p></details>
+  </div>
 
   <footer class="site">
-    <div class="legal">GridVest · Self-Directed Investing Software · © 2026 · Mockup with sample data</div>
+    <div class="legal">GridVest · Self-Directed Investing Software · © 2026 · Sample data throughout ·
+    Software only · Not an advisor · No warranties of any result</div>
   </footer>
 </div>
+
+<script>
+/* ================= ENGINE PARAMS (mirrors ALGORITHM.md §6) ================= */
+const PARAMS = { sell_target: 0.03, ladder_step: 0.023, block_pct: 0.025, max_open_rungs: 3, targets: { 'FUND A': 60, 'FUND B': 30 } };
+
+/* ================= SAMPLE STATE ================= */
+const STATE = {
+  portfolio: 1000000, cash: 720000,
+  funds: {
+    'FUND A': { prevClose: 48.20, blocks: [ { shares: 520, basis: 49.10 }, { shares: 540, basis: 47.95 }, { shares: 560, basis: 46.80 } ] },
+    'FUND B': { prevClose: 261.50, blocks: [ { shares: 19, basis: 265.40 } ] }
+  }
+};
+/* sample ledger (chronological), grid-shaped like the real strategy */
+const TX = [
+ ['FUND A','06/22','Buy',540,47.95],['FUND A','06/23','Buy',560,46.80],['FUND A','06/24','Sell',560,48.20],
+ ['FUND B','06/24','Buy',19,258.10],['FUND A','06/25','Buy',520,49.10],['FUND A','06/26','Sell',540,49.40],
+ ['FUND B','06/29','Sell',19,265.90],['FUND A','06/30','Buy',540,47.95],['FUND A','07/01','Sell',520,50.57],
+ ['FUND B','07/01','Buy',19,265.40],['FUND A','07/02','Buy',560,46.80],['FUND A','07/02','Buy',520,49.10]
+];
+const fmt$ = n => '$' + Math.round(n).toLocaleString();
+
+/* ================= TAB SHELL ================= */
+function go(p){ document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.p===p));
+  document.querySelectorAll('.panel').forEach(x => x.classList.remove('on'));
+  document.getElementById('p-'+p).classList.add('on'); }
+document.querySelectorAll('#tabs button').forEach(b => b.onclick = () => go(b.dataset.p));
+
+/* ================= HOME ================= */
+function hrTab(i, btn){ document.querySelectorAll('.hr-tabs button').forEach(b=>b.classList.remove('on')); btn.classList.add('on');
+  document.getElementById('hr-0').style.display = i===0?'':'none';
+  document.getElementById('hr-1').style.display = i===1?'':'none'; }
+
+function resultsPanel(){
+  const realized = 48140, openLoss = -7230, net = STATE.portfolio;
+  return `<table class="results">
+    <tr class="head"><td>Historical Results · All Accounts</td><td></td></tr>
+    <tr><td>Number of years</td><td>2.5</td></tr>
+    <tr class="band"><td>Projection (Realized)</td><td></td></tr>
+    <tr><td>Net investment</td><td>${fmt$(net)}</td></tr>
+    <tr><td>Realized gains</td><td>${fmt$(realized)}</td></tr>
+    <tr class="total"><td>Ending value · return</td><td>${fmt$(net+realized)} · ${(realized/net*100).toFixed(2)}%</td></tr>
+    <tr class="band"><td>Market (Unrealized)</td><td></td></tr>
+    <tr><td>Gain (loss) on open blocks</td><td>${fmt$(openLoss)}</td></tr>
+    <tr class="total"><td>Ending value · return</td><td>${fmt$(net+realized+openLoss)} · ${((realized+openLoss)/net*100).toFixed(2)}%</td></tr>
+    <tr class="band"><td>Current status</td><td></td></tr>
+    <tr><td>Cash reserve</td><td>${Math.round(STATE.cash/STATE.portfolio*100)}% · ${fmt$(STATE.cash)}</td></tr>
+    <tr><td>Open positions</td><td>${Math.round((1-STATE.cash/STATE.portfolio)*100)}% · ${fmt$(STATE.portfolio-STATE.cash)}</td></tr>
+  </table>`;
+}
+function countdown(){
+  const now = new Date();
+  const close = new Date(now); close.setHours(15,0,0,0); // 4pm ET ≈ 3pm CT
+  let msg;
+  if (now.getDay()===0||now.getDay()===6) msg = 'Market is closed for the weekend.';
+  else if (now < close){ const m = Math.floor((close-now)/60000);
+    msg = `Stock market will close in ${Math.floor(m/60)} hours, ${m%60} minutes.`; }
+  else msg = 'Market is closed. Tickets refresh after your next import.';
+  document.getElementById('countdown').textContent = msg;
+}
+document.getElementById('ytdline').textContent = 'You have a realized gain of $48,140 year to date (sample).';
+
+/* ================= ENGINE: today's tickets (ALGORITHM.md §4) ================= */
+function engine(){
+  const cancel = [], place = [];
+  let investable = STATE.cash - 0;
+  for (const [sym, f] of Object.entries(STATE.funds)){
+    // sells: every open block gets basis*(1+target)
+    f.blocks.forEach((b,i) => place.push({ act:'SELL', sym, shares:b.shares,
+      px:(b.basis*(1+PARAMS.sell_target)).toFixed(2), note:`Block ${i+1} target +${(PARAMS.sell_target*100).toFixed(1)}% over ${b.basis.toFixed(2)}` }));
+    // buys: ladder below prev close
+    const cap = (PARAMS.targets[sym]||0)/100 * STATE.portfolio;
+    let deployed = f.blocks.reduce((a,b)=>a+b.shares*f.prevClose,0);
+    const block$ = PARAMS.block_pct * STATE.portfolio * ((PARAMS.targets[sym]||0)/100) / 0.6;
+    for (let r=1; r<=PARAMS.max_open_rungs; r++){
+      const px = f.prevClose * Math.pow(1-PARAMS.ladder_step, r);
+      if (deployed >= cap || investable < block$) break;
+      place.push({ act:'BUY', sym, shares:Math.floor(block$/px), px:px.toFixed(2), note:`Rung ${r} · ${(PARAMS.ladder_step*100).toFixed(1)}% step` });
+      deployed += block$; investable -= block$;
+    }
+    // sample cancels: stale rung far below window
+    cancel.push({ act:'CANCEL', sym, shares:Math.floor(block$/(f.prevClose*0.9)), px:(f.prevClose*0.90).toFixed(2), note:'Stale rung outside window, repriced' });
+  }
+  return { cancel, place };
+}
+function ticketRows(list){
+  return '<tr><th>Action</th><th>Symbol</th><th>Shares</th><th>Limit price</th><th>Note</th></tr>' +
+    list.map(t => `<tr class="${t.act==='BUY'?'buy':t.act==='SELL'?'sell':''}">
+      <td>${t.act}</td><td>${t.sym}</td><td class="num">${t.shares.toLocaleString()}</td>
+      <td class="num">${t.px}</td><td>${t.note}</td></tr>`).join('');
+}
+function wiz(i){
+  document.querySelectorAll('#steps div').forEach((d,j)=>d.classList.toggle('on', j===i));
+  for (let j=0;j<3;j++) document.getElementById('w-'+j).style.display = j===i?'':'none';
+  if (i>0){ const { cancel, place } = engine();
+    document.getElementById('cancelTbl').innerHTML = ticketRows(cancel);
+    document.getElementById('placeTbl').innerHTML = ticketRows(place);
+    pStep.textContent = (PARAMS.ladder_step*100).toFixed(1)+'%';
+    pTarget.textContent = '+'+(PARAMS.sell_target*100).toFixed(1)+'%';
+    pBlock.textContent = (PARAMS.block_pct*100).toFixed(1)+'%';
+  }
+}
+
+/* ================= SUMMARY ================= */
+function renderSummary(){
+  const cards = Object.entries(STATE.funds).map(([sym,f]) => {
+    const val = f.blocks.reduce((a,b)=>a+b.shares*f.prevClose,0);
+    const openGL = f.blocks.reduce((a,b)=>a+b.shares*(f.prevClose-b.basis),0);
+    return `<div class="card fundcard"><h3>${sym} · ${(PARAMS.targets[sym]||0)}% target</h3>
+      <div class="kv"><span>Current value</span><span>${fmt$(val)}</span></div>
+      <div class="kv"><span>Currently deployed</span><span>${(val/STATE.portfolio*100).toFixed(0)}%</span></div>
+      <div class="kv"><span>Open blocks</span><span>${f.blocks.length}</span></div>
+      <div class="kv"><span>Open gain (loss)</span><span>${openGL<0?'(':''}${fmt$(Math.abs(openGL))}${openGL<0?')':''}</span></div>
+      <div class="kv"><span>Previous close</span><span>${f.prevClose.toFixed(2)}</span></div></div>`;
+  }).join('');
+  document.getElementById('fundCards').innerHTML = cards +
+    `<div class="card fundcard"><h3>Adjust targets</h3>
+     <p style="font-size:13px">Target allocations cap how much can deploy into each fund. Edit in
+     ALGORITHM params: ${Object.entries(PARAMS.targets).map(([k,v])=>k+' '+v+'%').join(' · ')}</p></div>`;
+  document.getElementById('totalPanel').innerHTML = resultsPanel();
+  document.getElementById('histTbl').innerHTML =
+    '<tr><th>Year</th><th>Begin</th><th>Realized gains</th><th>End (realized)</th><th>Return</th><th># gains</th><th>Days per gain</th></tr>' +
+    [['2024','$820,000','$91,800','$911,800','11.2%','44','4.9'],
+     ['2025','$911,800','$125,900','$1,037,700','13.8%','61','3.6'],
+     ['2026 YTD','$1,000,000','$48,140','$1,048,140','4.8%','31','3.1']]
+    .map(r=>'<tr>'+r.map((c,i)=>`<td class="${i?'num':''}">${c}</td>`).join('')+'</tr>').join('');
+}
+
+/* ================= ANALYSIS ================= */
+let chipSel = 'ALL';
+function chip(b){ chipSel = b.dataset.s; document.querySelectorAll('#chips button').forEach(x=>x.classList.toggle('on',x===b)); renderLedger(); }
+function renderLedger(){
+  let cash = 700000, blocks = 2, basis = {};
+  const rows = TX.map(([sym,d,act,sh,px]) => {
+    const amt = sh*px;
+    let profit = '', gain = '';
+    if (act==='Buy'){ cash-=amt; blocks++; basis[sym+px]=px; }
+    else { cash+=amt; blocks--; const b = px/(1+PARAMS.sell_target); profit = fmt$(sh*px - sh*b); gain = ((px/b-1)*100).toFixed(2)+'%'; }
+    return { sym,d,act,sh,px,amt,profit,gain,cash,blocks };
+  }).filter(r => chipSel==='ALL' || r.sym===chipSel).reverse();
+  document.getElementById('ledger').innerHTML =
+    '<tr><th>Symbol</th><th>Date</th><th>Action</th><th>Shares</th><th>Price</th><th>Amount</th><th>Profit</th><th>% gain</th><th>Cash after</th><th>Blocks owned</th></tr>' +
+    rows.map(r=>`<tr class="${r.act==='Buy'?'buy':'sell'}"><td>${r.sym}</td><td>${r.d}</td><td>${r.act}</td>
+      <td class="num">${r.sh.toLocaleString()}</td><td class="num">${r.px.toFixed(2)}</td>
+      <td class="num">${fmt$(r.amt)}</td><td class="num">${r.profit}</td><td class="num">${r.gain}</td>
+      <td class="num">${fmt$(r.cash)}</td><td class="num">${r.blocks}</td></tr>`).join('');
+}
+
+/* ================= CHARTS ================= */
+function renderChart(){
+  const c = document.getElementById('pchart'), x = c.getContext('2d');
+  const W=c.width, H=c.height, P=46;
+  x.clearRect(0,0,W,H);
+  // synth series: realized climbs steadily, market wiggles around it
+  const n=60, real=[], mkt=[];
+  let v=1000000;
+  for(let i=0;i<n;i++){ v += 900 + (i%7===3? 2200:0); real.push(v); mkt.push(v + Math.sin(i/4)*9000 - 4000); }
+  const all=[...real,...mkt], mx=Math.max(...all), mn=Math.min(...all);
+  const X=i=>P+(W-P-12)*i/(n-1), Y=v=>H-P+(P+14-H)*(v-mn)/(mx-mn);
+  x.strokeStyle='#2E2E2E'; x.lineWidth=1; x.beginPath(); x.moveTo(P,10); x.lineTo(P,H-P); x.lineTo(W-10,H-P); x.stroke();
+  x.strokeStyle='#000'; x.lineWidth=2; x.beginPath(); real.forEach((v,i)=>i?x.lineTo(X(i),Y(v)):x.moveTo(X(i),Y(v))); x.stroke();
+  x.setLineDash([3,3]); x.beginPath(); mkt.forEach((v,i)=>i?x.lineTo(X(i),Y(v)):x.moveTo(X(i),Y(v))); x.stroke(); x.setLineDash([]);
+  x.fillStyle='#2E2E2E'; x.font='10px Courier New';
+  x.fillText(fmt$(mx),2,Y(mx)+8); x.fillText(fmt$(mn),2,Y(mn));
+  document.getElementById('chartsHr').innerHTML = resultsPanel();
+}
+
+/* ================= PROJECTIONS ================= */
+function renderProj(){
+  const age=+prAge.value, amt=+prAmt.value, contrib=+prContrib.value, cEnd=+prContribEnd.value;
+  const wAge=+prWAge.value, wType=prWType.value, wVal=+prWVal.value;
+  const g=[+prG1.value/100, +prG2.value/100];
+  let b=[amt,amt], acc=[0,0];
+  let html = `<tr><th>Age</th><th>Year</th><th>Phase</th>
+    <th>S1 growth</th><th>S1 withdraw</th><th>S1 balance</th>
+    <th>S2 growth</th><th>S2 withdraw</th><th>S2 balance</th></tr>`;
+  const y0 = new Date().getFullYear();
+  for (let a=age+1; a<=Math.min(age+54,105); a++){
+    const cells=[];
+    const phase = a<=wAge? 'Growth' : 'Withdrawal';
+    for (let s=0;s<2;s++){
+      const grow = b[s]*g[s];
+      let wd = 0;
+      if (a>wAge){
+        if (wType==='growth') wd = grow;
+        else if (wType==='amount') wd = wVal;
+        else wd = b[s]*wVal/100;
+      }
+      const c = (a<=cEnd)? contrib : 0;
+      b[s] = b[s] + grow + c - wd; acc[s]+=wd;
+      cells.push(fmt$(grow), wd?fmt$(wd):'–', fmt$(b[s]));
+    }
+    html += `<tr><td>${a}</td><td>${y0+(a-age)}</td><td>${phase}</td>${cells.map(c=>`<td class="num">${c}</td>`).join('')}</tr>`;
+  }
+  document.getElementById('projTbl').innerHTML = html;
+}
+
+/* ================= BOOT ================= */
+function renderAll(){
+  document.getElementById('hr-0').innerHTML = resultsPanel();
+  countdown(); renderSummary(); renderLedger(); renderChart(); renderProj(); wiz(0);
+}
+renderAll();
+setInterval(countdown, 30000);
+</script>
 
 </body>
 </html>
