@@ -1,7 +1,7 @@
 # GridVest Trading Algorithm — Specification
 
-**Status:** v1.0 · reverse-engineered from Decisive Investor · July 6, 2026
-**Evidence base:** all 155 trades in the live account, 05/04/2026 → 07/06/2026 (NAIL 120, SPXL 31, TQQQ 4), plus the Owned Trading Blocks detail table and color legend.
+**Status:** v1.1 · reverse-engineered from Decisive Investor · updated July 7, 2026 with a recorded live Daily Processing session (20 min, both brokers — see `DecisiveInvestor_Archive/19-observed-daily-workflow.md`)
+**Evidence base:** all 155 trades in the live account, 05/04/2026 → 07/06/2026 (NAIL 120, SPXL 31, TQQQ 4), the Owned Trading Blocks detail table and color legend, plus direct observation of order placement.
 **This is a living document.** Edit the parameters in §6 and the logic in §4/§5 as we validate against more history. Every number here is empirical unless marked *[assumption]*.
 
 ---
@@ -31,7 +31,9 @@ The color legend encodes exactly these three states: **Buy Order**, **Sell Order
 
 | Parameter | Measured value | Notes |
 |-----------|----------------|-------|
-| **Sell profit target** | **≈ 3.0%** above block basis | sell/basis spread: median **3.22%**, mean 3.90% (mean inflated by outliers). Per-symbol PctGain medians: NAIL 3.68%, SPXL 3.17%, TQQQ ~3.25% floor. Minimum observed ≈ **2.4%**. |
+| **Sell profit target** | **per-ETF, ~3.2–4.5%** above block basis | Directly observed on live OTO pairs (7/7/2026): **NAIL +3.45%** (buy 46.12 → sell 47.71), **SOXL +4.47%** (buy 165.99 → sell 173.41). Ledger sell/basis medians: NAIL 3.68%, SPXL 3.17%, overall 3.22%, floor ≈ 2.4%. Conclusion: the target is a per-symbol constant, wider for higher-volatility funds. |
+| **Order mechanism** | **OTO conditional pair, GTC** | Every ticket is placed as Fidelity "Conditional → One triggers the other": Order A = buy limit at the rung, Order B = sell limit at basis × (1+target), armed automatically when A fills. Sell shows "(Untriggered)" until the buy fills. Block sequence numbers label the pairs (e.g. "OTO 204A/204B"). |
+| **Multi-account distribution** | same prices, proportional shares | One block's buy/sell prices are identical across all accounts in the group; share counts scale with account size (1,550 shares in the main account vs 7–50 in the small Roths). The wizard steps through one ticket per account ("Place Order 3 of 4"). |
 | **Buy ladder step** | **≈ 2.3% down** per rung | consecutive down-steps: NAIL median 2.31% / mean 2.08%; SPXL median 2.34% / mean 2.14%. Range ~1.1%–3.4% typical. |
 | **Block size** | **≈ 2.3–2.7% of portfolio** per block | NAIL buys median 2.70% of portfolio (avg ≈ $64.8k, trending ~$82k as portfolio grew). Scales with the ETF's target allocation (SPXL blocks far smaller at 10% target). Effectively a **fixed dollar tranche per ETF**, recalculated from portfolio × sizing constant. |
 | **Max deployment** | **~29%** ever invested | % invested ranged **0% → 28.9%**. The huge cash reserve is the core risk control. |
@@ -107,7 +109,8 @@ Reads exactly as the model in §4: ladder down in ~2.3% rungs, each block carrie
 
 ```jsonc
 {
-  "sell_target":     0.030,   // +3.0% above block basis (min seen ~2.4%)
+  "sell_target":     { "NAIL": 0.0345, "SPXL": 0.0317, "SOXL": 0.0447, "TQQQ": 0.0325, "default": 0.030 },
+                              // per-ETF, from live OTO pairs + ledger medians
   "ladder_step":     0.023,   // 2.3% between buy rungs
   "block_pct":       0.025,   // block size ≈ 2.5% of portfolio (per ETF, scaled by target)
   "max_open_rungs":  6,        // [assumption] how many live buy rungs at once
