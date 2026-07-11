@@ -258,6 +258,7 @@
 
 <!-- real account data, local only (gitignored). Public site 404s this and uses sample data. -->
 <script src="gridvest-data.js"></script>
+<script src="reconcile.js"></script>
 <script>
 /* ===== engine params (mirrors ALGORITHM.md) ===== */
 const PARAMS={sell_target:{NAIL:0.0345,SPXL:0.0317,SOXL:0.0447,TQQQ:0.0325,'default':0.03},
@@ -291,6 +292,16 @@ if (REAL) {
       blocksOwned:4,realizedGains:48140,netInvestment:1000000,numYears:2.5},
     funds, tx };
 }
+/* reconciled state persists across reloads, but only while it was built on the SAME
+   base snapshot — a fresh gridvest-data.js scrape supersedes older reconciliations */
+const LSKEY='gridvest.reconciled';
+try{const saved=JSON.parse(localStorage.getItem(LSKEY)||'null');
+ if(saved && saved.base===(REAL?REAL.generated:null)){
+  for(const f of Object.values(D.funds))f.blocks=[];
+  saved.blocks.forEach(b=>{if(D.funds[b.symbol])D.funds[b.symbol].blocks.push({account:b.account,basis:b.basis,shares:b.shares,opened:b.opened});});
+  Object.assign(D.summary,saved.summary);
+ } else if(saved) localStorage.removeItem(LSKEY);
+}catch(e){console.warn('reconciled-state restore failed',e);}
 for (const [sym,f] of Object.entries(D.funds)) PARAMS.targets[sym]=f.target;
 const S=D.summary;
 const openGL = S.marketValue - S.projection;               // gain(loss) on open positions
@@ -392,25 +403,30 @@ function wiz(i){document.querySelectorAll('#stepper div').forEach((d,j)=>d.class
   pStep.textContent=(PARAMS.ladder_step*100).toFixed(1)+'%';
   pTarget.textContent=Object.keys(D.funds).map(s=>s+' +'+(sellT(s)*100).toFixed(2)+'%').join(' · ');}}
 
-/* ===== CSV IMPORT (Fidelity Accounts_History format) ===== */
+/* ===== CSV IMPORT + RECONCILIATION (P0.1 — Fidelity Accounts_History + Schwab) ===== */
+function persistState(){
+ const blocks=[];for(const[sym,f]of Object.entries(D.funds))f.blocks.forEach(b=>blocks.push({symbol:sym,account:b.account,basis:b.basis,shares:b.shares,opened:b.opened}));
+ localStorage.setItem(LSKEY,JSON.stringify({generated:new Date().toISOString(),base:REAL?REAL.generated:null,summary:S,blocks}));}
 document.getElementById('csv').addEventListener('change',function(){
- const file=this.files[0];if(!file)return;
+ const file=this.files[0];if(!file)return;this.value='';
  const rd=new FileReader();
  rd.onload=()=>{
-  const lines=String(rd.result).split(/\r?\n/);
-  const hi=lines.findIndex(l=>/run date/i.test(l)&&/symbol/i.test(l));
-  if(hi<0){document.getElementById('csvmsg').textContent='Could not find a header row (Run Date / Symbol). Is this the Accounts_History CSV?';return;}
-  const hdr=lines[hi].split(',').map(h=>h.trim().toLowerCase());
-  const col=re=>hdr.findIndex(h=>re.test(h));
-  const ci={date:col(/run date/),action:col(/^action/),sym:col(/^symbol/),qty:col(/quantity/),price:col(/price/),amt:col(/amount/)};
-  const syms=Object.keys(D.funds);let buys=0,sells=0,other=0;
-  for(let i=hi+1;i<lines.length;i++){const c=lines[i].split(',');if(c.length<4)continue;
-   const sym=(c[ci.sym]||'').trim(), act=(c[ci.action]||'').toUpperCase();
-   if(!syms.includes(sym))continue;
-   if(/BOUGHT|BUY/.test(act))buys++;else if(/SOLD|SELL/.test(act))sells++;else other++;}
-  document.getElementById('csvmsg').textContent=
-   `Parsed ${file.name}: ${buys} buys, ${sells} sells${other?', '+other+' other rows':''} for ${syms.join('/')}. Positions reconciled — continue to review orders.`;
-  setTimeout(()=>wiz(1),1200);};
+  const RC=window.GridVestReconcile,msg=document.getElementById('csvmsg');
+  const {format,txs,skipped}=RC.normalize(String(rd.result),Object.keys(D.funds));
+  if(!format){msg.innerHTML='⚠️ '+skipped[0].reason;return;}
+  const {state,events,issues}=RC.reconcile({funds:D.funds,summary:S},txs,PARAMS);
+  for(const[sym,f]of Object.entries(state.funds))D.funds[sym].blocks=f.blocks;
+  Object.assign(S,state.summary);
+  persistState();
+  const opens=events.filter(e=>e.type==='open'),closes=events.filter(e=>e.type==='close');
+  const profit=closes.reduce((a,e)=>a+e.profit,0);
+  let h=`Parsed ${file.name} (${format}): <b>${opens.length}</b> buy fill${opens.length!==1?'s':''} opened blocks, <b>${closes.length}</b> sell fill${closes.length!==1?'s':''} closed blocks`
+   +(closes.length?` booking <b>${f$(profit)}</b> realized`:'')
+   +`. Now ${S.blocksOwned} blocks open · cash ${f$(S.cashBalance)}.`;
+  const warn=[...skipped.map(s=>s.reason),...issues.map(i=>i.reason)];
+  if(warn.length){h+=`<br><span style="color:#a33">⚠️ ${warn.length} row(s) need review:<br>&nbsp;· ${warn.join('<br>&nbsp;· ')}</span><br>Review, then click "Orders to Cancel" in the stepper to continue.`;msg.innerHTML=h;return;}
+  msg.innerHTML=h+' Positions reconciled — continuing to order review…';
+  setTimeout(()=>wiz(1),1600);};
  rd.readAsText(file);});
 
 /* ===== SUMMARY ===== */
