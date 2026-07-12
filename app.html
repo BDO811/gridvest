@@ -108,6 +108,7 @@
             <button class="skipbtn" style="background:var(--green)" onclick="nextTicket(true)">Placed — Next Order</button>
             <button class="skipbtn" onclick="nextTicket(false)">Skip This Order</button>
           </p>
+          <div id="withheldBox"></div>
         </div>
         <div id="w-3" style="display:none">
           <div style="margin-top:20px;padding:60px 30px;background:linear-gradient(160deg,#3b4a45,#6d7b70);color:#fff;text-align:center;font-family:Georgia,serif;font-size:30px;line-height:1.4" id="doneMsg"></div>
@@ -350,7 +351,26 @@ function countdown(){const now=new Date();const c=new Date(now);c.setHours(15,0,
 function engine(){return window.GridVestEngine.engine({funds:D.funds,summary:S},PARAMS);}
 
 /* ---- per-ticket placement flow (mirrors DI "Place Order k of N") ---- */
-let TICKETS=[],TIX=0,PLACED=0;
+let TICKETS=[],TIX=0,PLACED=0,WITHHELD=[];
+/* P0.4 guardrails: withheld rungs render greyed with their reason; including one
+   is a deliberate two-step (per-rung button), never automatic */
+function renderWithheld(){
+ const box=document.getElementById('withheldBox');
+ if(!WITHHELD.length){box.innerHTML='';return;}
+ const groups={};WITHHELD.forEach(t=>{(groups[t.sym+'@'+t.block]=groups[t.sym+'@'+t.block]||[]).push(t);});
+ box.innerHTML='<h3 style="margin-top:22px;color:#888">Withheld by guardrails</h3>'+
+  '<p style="font-size:12.5px;color:#888">These rungs breach a risk control. They are not part of today\'s orders unless you deliberately include one.</p>'+
+  Object.entries(groups).map(([key,g])=>`
+   <div style="border:1px solid #ccc;background:#f4f4f2;color:#888;padding:10px 14px;margin:8px 0;border-radius:4px">
+    <b>${g[0].sym} — Trading Block ${g[0].block}</b> · rung ${g[0].rung} · ${g.length} account ticket${g.length>1?'s':''} · buy ${g[0].buyPx} → sell ${g[0].sellPx}<br>
+    <span style="color:#a33">⚠️ ${g[0].reason}</span><br>
+    <button class="skipbtn" style="margin-top:6px" onclick="includeRung('${key}')">Include anyway (override guardrail)</button>
+   </div>`).join('');}
+function includeRung(key){
+ const take=WITHHELD.filter(t=>t.sym+'@'+t.block===key);
+ WITHHELD=WITHHELD.filter(t=>t.sym+'@'+t.block!==key);
+ TICKETS=TICKETS.concat(take.map(t=>{const c={...t};delete c.reason;return c;}));
+ renderWithheld();renderTicket();}
 function cancelRows(list){return '<tr><th>Order</th><th>Symbol</th><th>Account</th><th>Instruction</th></tr>'+
  list.map(t=>`<tr class="sell"><td>${t.label}</td><td>${t.sym}</td><td>${t.account}</td><td>${t.desc}</td></tr>`).join('');}
 function renderTicket(){
@@ -376,9 +396,9 @@ function wizDone(){
   `Your Daily Processing is Complete<br><span style="font-size:16px;font-weight:normal">${PLACED} of ${TICKETS.length} OTO tickets placed · A gain of ${f$(S.realizedGains)} year-to-date</span>`;}
 function wiz(i){document.querySelectorAll('#stepper div').forEach((d,j)=>d.classList.toggle('on',j===i));
  for(let j=0;j<4;j++)document.getElementById('w-'+j).style.display=j===i?'':'none';
- if(i>0){const{cancel,tickets}=engine();
+ if(i>0){const{cancel,tickets,withheld}=engine();
   document.getElementById('cancelTbl').innerHTML=cancelRows(cancel);
-  if(i===2){TICKETS=tickets;TIX=0;PLACED=0;renderTicket();}
+  if(i===2){TICKETS=tickets;WITHHELD=withheld||[];TIX=0;PLACED=0;renderTicket();renderWithheld();}
   pStep.textContent=(PARAMS.ladder_step*100).toFixed(1)+'%';
   pTarget.textContent=Object.keys(D.funds).map(s=>s+' +'+(sellT(s)*100).toFixed(2)+'%').join(' · ');}}
 

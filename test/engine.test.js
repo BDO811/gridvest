@@ -83,10 +83,54 @@ t('allocation cap stops the ladder', () => {
   assert.ok(new Set(nailBlocks.map(t => t.rung)).size <= 4);
 });
 
-t('insufficient cash emits nothing', () => {
+t('insufficient cash emits nothing active', () => {
   const st = fixture(); st.summary.cashBalance = 10;
   const { tickets } = E.engine(st, PARAMS);
   assert.strictEqual(tickets.length, 0);
+});
+
+/* ---- P0.4 guardrails: withheld, never silent ---- */
+
+t('guardrail: insufficient cash -> rungs withheld with reason, prices still computed', () => {
+  const st = fixture(); st.summary.cashBalance = 10;
+  const { withheld } = E.engine(st, PARAMS);
+  assert.ok(withheld.length > 0);
+  assert.match(withheld[0].reason, /insufficient-cash/);
+  assert.ok(+withheld[0].buyPx > 0 && +withheld[0].sellPx > +withheld[0].buyPx);
+});
+
+t('guardrail: designated reserve -> cash-reserve reason when cash exists but is reserved', () => {
+  const st = fixture(); st.summary.cashBalance = 2000000;
+  const p = { ...PARAMS, reserve: 1996000 };            // investable $4k < even SPXL's $7k block
+  const { tickets, withheld } = E.engine(st, p);
+  assert.strictEqual(tickets.length, 0);
+  assert.ok(withheld.length > 0);
+  assert.match(withheld[0].reason, /cash-reserve/);
+});
+
+t('guardrail: allocation cap -> allocation-cap reason on the rungs past the cap', () => {
+  const st = fixture(); st.summary.marketValue = 90000;  // NAIL cap 81k < deployed ~81.3k
+  const { withheld } = E.engine(st, PARAMS);
+  const capped = withheld.filter(w => w.sym === 'NAIL');
+  assert.ok(capped.length > 0);
+  assert.match(capped[0].reason, /allocation-cap/);
+});
+
+t('guardrail: withheld rungs consume no cash — active tickets unaffected', () => {
+  const st = fixture();
+  const base = E.engine(st, PARAMS).tickets.length;
+  const p = { ...PARAMS, reserve: 0 };
+  assert.strictEqual(E.engine(st, p).tickets.length, base);
+  // reserve large enough to withhold rung 3 only
+  const blk = PARAMS.block_pct * st.summary.marketValue * 0.9;   // NAIL block $
+  const p2 = { ...PARAMS, reserve: st.summary.cashBalance - 2.5 * blk - 20000 /*SPXL room*/ };
+  const r2 = E.engine(st, p2);
+  assert.ok(r2.tickets.length > 0 && r2.withheld.length > 0);
+});
+
+t('no guardrail breach -> withheld is empty', () => {
+  const { withheld } = E.engine(fixture(), PARAMS);
+  assert.strictEqual(withheld.length, 0);
 });
 
 t('cancel list covers every open block with its sell-target price', () => {

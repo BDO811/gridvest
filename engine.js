@@ -1,10 +1,15 @@
 /* GridVest P0.8 — the trading engine as a pure module (ALGORITHM.md §4, v1.1 OTO model)
  *
- * engine(state, params) -> { cancel[], tickets[] }
+ * engine(state, params) -> { cancel[], tickets[], withheld[] }
  *   state:  { funds: {SYM: {prevClose, blocks:[{account,basis,shares}]}},
  *             summary: {cashBalance, marketValue, blocksOwned} }
  *   params: { sell_target: number | {SYM|default}, ladder_step, block_pct,
- *             max_open_rungs, targets: {SYM: pct} }
+ *             max_open_rungs, targets: {SYM: pct}, reserve (cash floor, $) }
+ *
+ * Guardrails (P0.4): rungs that would breach the allocation cap, the
+ * designated cash reserve, or available cash are NOT dropped silently —
+ * they come back in `withheld` with the same ticket fields plus `reason`,
+ * so the UI can grey them out and let the user deliberately include one.
  *
  * No DOM, no globals, no I/O — same module runs in app.html, in tests, and
  * (future) server-side. Behavior preserved verbatim from the app.html inline
@@ -33,9 +38,10 @@
 
   function engine(state, params) {
     const { funds, summary: S } = state;
-    const cancel = [], tickets = [];
+    const cancel = [], tickets = [], withheld = [];
     const weights = accountWeights(funds);
-    let inv = S.cashBalance;
+    const reserve = params.reserve || 0;
+    let inv = S.cashBalance - reserve;    // investable never touches the reserve
     let seq = (S.blocksOwned || 0) + 1;
     for (const [sym, f] of Object.entries(funds)) {
       (f.blocks || []).forEach((b, i) => cancel.push({
@@ -49,20 +55,29 @@
       if (blk <= 0) continue;
       for (let r = 1; r <= params.max_open_rungs; r++) {
         const buyPx = +(f.prevClose * Math.pow(1 - params.ladder_step, r)).toFixed(2);
-        if (dep >= cap || inv < blk) break;
+        // guardrails: classify instead of silently stopping
+        let reason = null;
+        if (dep >= cap) reason = `allocation-cap: ${sym} already at its ${params.targets[sym]}% target (${Math.round(dep).toLocaleString()} of ${Math.round(cap).toLocaleString()} deployed)`;
+        else if (inv < blk) reason = (S.cashBalance >= blk && reserve > 0)
+          ? `cash-reserve: placing this ${Math.round(blk).toLocaleString()} block would invade the ${reserve.toLocaleString()} designated reserve`
+          : `insufficient-cash: block needs ${Math.round(blk).toLocaleString()}, only ${Math.max(0, Math.round(inv)).toLocaleString()} investable`;
         const sellPx = +(buyPx * (1 + sellT(params, sym))).toFixed(2);
+        const bucket = reason ? withheld : tickets;
         for (const [acct, wt] of Object.entries(weights)) {
           const sh = Math.floor(blk * wt / buyPx); if (sh < 1) continue;
-          tickets.push({
+          const tk = {
             block: buyPx.toFixed(2), seq, sym, account: acct, shares: sh,
             buyPx: buyPx.toFixed(2), sellPx: sellPx.toFixed(2),
             spreadPct: (sellT(params, sym) * 100).toFixed(2), rung: r,
-          });
+          };
+          if (reason) tk.reason = reason;
+          bucket.push(tk);
         }
-        seq++; dep += blk; inv -= blk;
+        seq++;
+        if (!reason) { dep += blk; inv -= blk; }   // withheld rungs consume nothing
       }
     }
-    return { cancel, tickets };
+    return { cancel, tickets, withheld };
   }
 
   return { engine, accountWeights, sellT };
