@@ -259,6 +259,7 @@
 <!-- real account data, local only (gitignored). Public site 404s this and uses sample data. -->
 <script src="gridvest-data.js"></script>
 <script src="reconcile.js"></script>
+<script src="engine.js"></script>
 <script>
 /* ===== engine params (mirrors ALGORITHM.md) ===== */
 const PARAMS={sell_target:{NAIL:0.0345,SPXL:0.0317,SOXL:0.0447,TQQQ:0.0325,'default':0.03},
@@ -345,30 +346,8 @@ function countdown(){const now=new Date();const c=new Date(now);c.setHours(15,0,
  else m='Market is closed. Tickets refresh after your next import.';
  document.getElementById('countdown').textContent=m;}
 
-/* ===== ENGINE (ALGORITHM.md §4, v1.1 OTO model) — runs on D.funds blocks + prevClose ===== */
-function accountWeights(){const w={};let tot=0;
- for(const f of Object.values(D.funds))f.blocks.forEach(b=>{const a=b.account||'Account 1';const v=b.shares*b.basis;w[a]=(w[a]||0)+v;tot+=v;});
- if(!tot)return{'Account 1':1};for(const k in w)w[k]/=tot;return w;}
-function engine(){
- const cancel=[],tickets=[];const weights=accountWeights();let inv=S.cashBalance;let seq=(S.blocksOwned||0)+1;
- for(const[sym,f]of Object.entries(D.funds)){
-  f.blocks.forEach((b,i)=>cancel.push({label:`OTO ${i+1}B`,sym,account:b.account||'Account 1',
-   desc:`Sell ${b.shares.toLocaleString()} ${sym} Limit ${(b.basis*(1+sellT(sym))).toFixed(2)} GTC — cancel only if this block was re-averaged or DI-window repriced`}));
-  const cap=(PARAMS.targets[sym]||0)/100*S.marketValue;
-  let dep=f.blocks.reduce((a,b)=>a+b.shares*f.prevClose,0);
-  const totT=Object.values(PARAMS.targets).reduce((a,b)=>a+b,0)||1;
-  const blk=PARAMS.block_pct*S.marketValue*((PARAMS.targets[sym]||0)/totT);
-  if(blk<=0)continue;
-  for(let r=1;r<=PARAMS.max_open_rungs;r++){
-   const buyPx=+(f.prevClose*Math.pow(1-PARAMS.ladder_step,r)).toFixed(2);
-   if(dep>=cap||inv<blk)break;
-   const sellPx=+(buyPx*(1+sellT(sym))).toFixed(2);
-   for(const[acct,wt]of Object.entries(weights)){
-    const sh=Math.floor(blk*wt/buyPx);if(sh<1)continue;
-    tickets.push({block:buyPx.toFixed(2),seq:seq,sym,account:acct,shares:sh,buyPx:buyPx.toFixed(2),sellPx:sellPx.toFixed(2),
-     spreadPct:(sellT(sym)*100).toFixed(2),rung:r});}
-   seq++;dep+=blk;inv-=blk;}}
- return{cancel,tickets};}
+/* ===== ENGINE — extracted to engine.js (P0.8); this is a thin binding ===== */
+function engine(){return window.GridVestEngine.engine({funds:D.funds,summary:S},PARAMS);}
 
 /* ---- per-ticket placement flow (mirrors DI "Place Order k of N") ---- */
 let TICKETS=[],TIX=0,PLACED=0;
