@@ -82,6 +82,7 @@
           <div style="display:flex;justify-content:space-between;align-items:center">
             <h3>Import Broker Transactions</h3><button class="skipbtn" onclick="wiz(1)">SKIP</button>
           </div>
+          <div id="quotesBar" style="border:1px solid #ddd;background:#fafaf8;padding:10px 14px;margin:10px 0;font-size:13px"></div>
           <p style="font-weight:bold;text-align:center;margin:8px 0 4px">After exporting from your broker, return here to review the next step</p>
           <ul>
             <li><a href="https://www.fidelity.com" target="_blank">CLICK HERE to open your broker and log in</a></li>
@@ -201,6 +202,13 @@
           Streak Tracker · Group Naming · Buy Settings · Account Display Order · ETF Allocation · Exclude Accounts · Zero Balance
         </div>
       </div>
+      <div style="border:1px solid #ddd;background:#fff;padding:20px;margin-bottom:18px">
+        <h2 class="section" style="color:var(--green)">Market Data (Alpha Vantage)</h2>
+        <p style="font-size:12.5px;color:#666;margin:8px 0">Paste your Alpha Vantage API key to load previous closes automatically each day. Stored only in this browser (localStorage) — never in any file or repo.</p>
+        <input type="password" id="avKey" placeholder="API key" style="padding:6px;border:1px solid #ccc;width:220px">
+        <button class="skipbtn" style="background:var(--green)" onclick="saveAvKey()">Save Key</button>
+        <span id="avKeyMsg" style="font-size:12px;color:#005C52;margin-left:8px"></span>
+      </div>
       <div style="border:1px solid #ddd;background:#fff;padding:20px">
         <h2 class="section" style="color:var(--green)">ETF Allocation Percentages</h2>
         <table class="ss" style="margin-top:10px" id="allocTbl"></table>
@@ -261,6 +269,7 @@
 <script src="gridvest-data.js"></script>
 <script src="reconcile.js"></script>
 <script src="engine.js"></script>
+<script src="quotes.js"></script>
 <script>
 /* ===== engine params (mirrors ALGORITHM.md) ===== */
 const PARAMS={sell_target:{NAIL:0.0345,SPXL:0.0317,SOXL:0.0447,TQQQ:0.0325,'default':0.03},
@@ -401,6 +410,35 @@ function wiz(i){document.querySelectorAll('#stepper div').forEach((d,j)=>d.class
   if(i===2){TICKETS=tickets;WITHHELD=withheld||[];TIX=0;PLACED=0;renderTicket();renderWithheld();}
   pStep.textContent=(PARAMS.ladder_step*100).toFixed(1)+'%';
   pTarget.textContent=Object.keys(D.funds).map(s=>s+' +'+(sellT(s)*100).toFixed(2)+'%').join(' · ');}}
+
+/* ===== LIVE QUOTES (P0.6 — Alpha Vantage; key lives only in this browser) ===== */
+const AVKEY='gridvest.avkey';
+function saveAvKey(){const v=document.getElementById('avKey').value.trim();
+ if(v){localStorage.setItem(AVKEY,v);document.getElementById('avKeyMsg').textContent='Saved (this browser only).';refreshQuotes();}
+ else{localStorage.removeItem(AVKEY);document.getElementById('avKeyMsg').textContent='Key cleared.';}}
+function dataFileDate(){return REAL?REAL.generated:'sample data';}
+function quotesBar(status){
+ document.getElementById('quotesBar').innerHTML=
+  `<b>Previous closes</b> (the engine's ladder anchors) — ${status}<br>`+
+  Object.entries(D.funds).map(([sym,f])=>
+   `${sym} <input value="${f.prevClose}" style="width:72px;padding:2px" onchange="setPrevClose('${sym}',this.value)">`).join(' &nbsp;·&nbsp; ')+
+  ` &nbsp;<button class="skipbtn" style="padding:4px 10px;font-size:12px" onclick="refreshQuotes()">Refresh quotes</button>`;}
+function setPrevClose(sym,v){const n=parseFloat(v);if(n>0)D.funds[sym].prevClose=n;}
+async function refreshQuotes(){
+ const key=localStorage.getItem(AVKEY);
+ if(!key){quotesBar(`<span style="color:#a33">no API key — anchors are from the data file (${dataFileDate()}); add a key in Profile or edit below</span>`);return;}
+ quotesBar('fetching…');
+ try{
+  const {quotes,errors}=await window.GridVestQuotes.fetchPrevCloses(Object.keys(D.funds),key);
+  for(const[sym,q]of Object.entries(quotes))D.funds[sym].prevClose=q.prevClose;
+  const first=Object.values(quotes)[0];
+  let s=first?`<span style="color:#005C52">live as of ${first.asOf}</span>`:'';
+  const errs=Object.entries(errors);
+  if(errs.length)s+=` <span style="color:#a33">⚠️ ${errs.map(([k,v])=>k+': '+v).join(' · ')} — those anchors still show data-file values (${dataFileDate()}); edit manually if needed</span>`;
+  quotesBar(s);
+ }catch(e){quotesBar(`<span style="color:#a33">${e.message} — anchors are from the data file (${dataFileDate()})</span>`);}}
+refreshQuotes();
+if(localStorage.getItem(AVKEY))document.getElementById('avKey').placeholder='key saved — paste to replace';
 
 /* ===== CSV IMPORT + RECONCILIATION (P0.1 — Fidelity Accounts_History + Schwab) ===== */
 function persistState(){
