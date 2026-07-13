@@ -1,6 +1,13 @@
 # GridVest Trading Algorithm — Specification
 
-**Status:** v1.1 · reverse-engineered from Decisive Investor · updated July 7, 2026 with a recorded live Daily Processing session (20 min, both brokers — see `DecisiveInvestor_Archive/19-observed-daily-workflow.md`)
+**Status:** v1.2 · reverse-engineered from Decisive Investor · updated July 13, 2026 with a second fully-transcribed live session (27 OTO tickets, 3 groups, both brokers — see `archive/sessions/2026-07-13-daily/why-each-action.md`)
+
+> **v1.2 corrections (2026-07-13 session):**
+> 1. **The buy ladder is a persistent global grid, not a daily prev-close calculation.** Each symbol has fixed price levels ~2.34% apart that persist across days and across all account groups (e.g. NAIL …46.12 → 45.06 → … → 40.00 → 39.07 spanning 7/7→7/13; SOXL 165.99 unchanged as a block for 6+ days). Daily buys = the next grid level(s) below the lowest covered level, ~2 rungs max observed. §4's `ref × (1−step)^rung` model is WRONG and the engine must instead maintain per-symbol grid state. Open: what seeds a new symbol's grid.
+> 2. **Sell target is not a per-symbol constant.** Base ≈ +3.0% over buy for a fresh block; observed +3.5–5.0% on the same day/symbol/price in accounts holding higher-basis shares — consistent with **sell = re-averaged block basis (AdjustedTradeBlock) × target**. Per-symbol constants in §6 are snapshots, not parameters. Confirmation needs an Owned Trading Blocks basis snapshot.
+> 3. **Multi-account distribution weights = current account value** (not open-block value); accounts rounding below 1 share are skipped.
+> 4. **ETF sets and targets are configured per group** (Cash: TQQQ/TNA/SOXL/NAIL · Roth: TQQQ/SOXL/NAIL · Schwab PCRA: TQQQ/SOXL). TNA and TQQQ are actively traded as of 7/13.
+> 5. **No cancels occur on down days** — price falling into the grid leaves all rungs valid. Cancel logic (likely: price rising away from rungs, and re-averaging repricing sells) is still unobserved.
 **Evidence base:** all 155 trades in the live account, 05/04/2026 → 07/06/2026 (NAIL 120, SPXL 31, TQQQ 4), the Owned Trading Blocks detail table and color legend, plus direct observation of order placement.
 **This is a living document.** Edit the parameters in §6 and the logic in §4/§5 as we validate against more history. Every number here is empirical unless marked *[assumption]*.
 
